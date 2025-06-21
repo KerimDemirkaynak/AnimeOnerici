@@ -1,1 +1,394 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎲 Çalışan Anime Önerici</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg-primary: #121212;
+      --bg-secondary: #1e1e1e;
+      --bg-tertiary: #2e2e3f;
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --accent-primary: #e94560;
+      --accent-secondary: #4fc3f7;
+      --border-color: #333;
+      --btn-secondary-bg: #4a4a5e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Poppins', sans-serif;
+      padding: 1rem;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: var(--accent-secondary);
+      font-weight: 700;
+    }
+    .controls-wrapper {
+      background-color: var(--bg-secondary);
+      padding: 1.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .filter-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    @media (min-width: 768px) { .filter-grid { grid-template-columns: 1fr 1fr; } }
+    .filter-group label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: block;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+    select, input {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+    select[multiple] { height: 150px; }
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--accent-secondary);
+      box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.25);
+    }
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    @media (min-width: 768px) { .button-group { flex-direction: row; } }
+    
+    button {
+      color: #fff;
+      border: none;
+      padding: 0.9rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      width: 100%;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+    .btn-primary { background-color: var(--accent-primary); }
+    .btn-primary:hover { background-color: #d83c54; }
+    .btn-secondary { background-color: var(--btn-secondary-bg); }
+    .btn-secondary:hover { background-color: #5f5f78; }
+    .btn-accent { background-color: var(--accent-secondary); }
+    .btn-accent:hover { background-color: #40b2e0; }
 
+    .message-box {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-left: 5px solid var(--text-secondary);
+        border-radius: 8px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .message-box i { font-size: 1.5rem; }
+    .message-box.loading { border-left-color: var(--accent-secondary); }
+    .message-box.error { border-left-color: var(--accent-primary); }
+    .fa-spinner { animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .anime-card {
+      background: var(--bg-secondary);
+      margin-top: 1rem;
+      padding: 1.5rem;
+      border-radius: 12px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      border: 1px solid var(--border-color);
+      animation: fadeIn 0.5s ease;
+    }
+    @keyframes fadeIn {from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); }}
+    @media (min-width: 768px) { .anime-card { flex-direction: row; } }
+    .anime-cover { flex-shrink: 0; text-align: center; }
+    .anime-cover img { width: 180px; max-width: 100%; border-radius: 10px; box-shadow: 0 5px 15px #0005; }
+    .anime-details { flex-grow: 1; }
+    .anime-details h2 { color: var(--accent-secondary); margin-bottom: 1rem; font-size: 1.6rem; }
+    .detail-item { margin-bottom: 0.8rem; line-height: 1.6; font-size: 0.95rem; }
+    .detail-item strong { color: var(--text-secondary); min-width: 100px; display: inline-block; }
+    .detail-item p { color: var(--text-secondary); margin-top: 0.5rem; }
+    .anime-links { margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+    .anime-links a { color: var(--accent-secondary); text-decoration: none; background-color: var(--bg-tertiary); padding: 0.6rem 1.2rem; border-radius: 20px; font-weight: 500; transition: background-color 0.2s; }
+    .anime-links a:hover { background-color: #444a66; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🎲 Anime Önerici</h1>
+
+    <div class="controls-wrapper">
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label for="includeTags">İçermesini İstediklerin (CTRL/CMD ile çoklu seçim)</label>
+          <select id="includeTags" multiple></select>
+        </div>
+        <div class="filter-group">
+          <label for="excludeTags">Dışında Tutulacaklar (CTRL/CMD ile çoklu seçim)</label>
+          <select id="excludeTags" multiple></select>
+        </div>
+        <div class="filter-group">
+          <label for="studios">Stüdyo Seçimi (CTRL/CMD ile çoklu seçim)</label>
+          <select id="studios" multiple></select>
+        </div>
+        <div class="filter-group">
+          <div>
+            <label for="minScore">Minimum Puan (100 üzerinden)</label>
+            <input type="number" id="minScore" value="70" min="0" max="100" />
+          </div>
+          <div style="margin-top: 1.5rem;">
+            <label for="startYear">Yayın Yılı (Opsiyonel)</label>
+            <select id="startYear"><option value="">Tümü</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="button-group">
+        <button onclick="getFilteredAnime()" class="btn-primary">Anime Öner</button>
+        <button id="anotherBtn" onclick="suggestAnother()" class="btn-accent" style="display: none;">Başka Öner!</button>
+        <button onclick="resetFilters()" class="btn-secondary">Filtreleri Sıfırla</button>
+      </div>
+    </div>
+
+    <div id="results"></div>
+  </div>
+
+<script>
+    const allTagsMap = {
+        "Aksiyon": "Action", "Macera": "Adventure", "Komedi": "Comedy", "Dram": "Drama", "Ecchi": "Ecchi", "Fantastik": "Fantasy", "Korku": "Horror", "Büyülü Kız": "Mahou Shoujo", "Meka": "Mecha", "Müzik": "Music", "Gizem": "Mystery", "Psikolojik": "Psychological", "Romantizm": "Romance", "Bilim Kurgu": "Sci-Fi", "Hayattan Kesitler": "Slice of Life", "Spor": "Sports", "Doğaüstü": "Supernatural", "Gerilim": "Thriller", "Başka Dünya": "Isekai", "Büyü": "Magic", "Süper Güç": "Super Power", "Okul": "School", "Hayatta Kalma": "Survival", "Zaman Yolculuğu": "Time Travel", "Askeri": "Military", "Vahşet": "Gore", "Tarihi": "Historical", "Harem": "Harem"
+    };
+
+    // Bu liste, API'nin hangilerini "genre" olarak kabul ettiğini belirtmek için KRİTİK.
+    const genreList = ["Action", "Adventure", "Comedy", "Drama", "Ecchi", "Fantasy", "Horror", "Mahou Shoujo", "Mecha", "Music", "Mystery", "Psychological", "Romance", "Sci-Fi", "Slice of Life", "Sports", "Supernatural", "Thriller"];
+
+    const studioMap = {
+        "MAPPA": "mappa", "Ufotable": "ufotable", "Bones": "bones", "Trigger": "trigger", "Studio Ghibli": "studio ghibli", "A-1 Pictures": "a-1 pictures", "CloverWorks": "cloverworks", "Kyoto Animation": "kyoto animation", "White Fox": "white fox", "J.C. Staff": "j.c. staff", "Shaft": "shaft", "Production I.G": "production i.g", "Wit Studio": "wit studio", "Sunrise": "sunrise", "Madhouse": "madhouse", "Brain's Base": "brain's base", "P.A. Works": "p.a. works", "David Production": "david production", "Studio Deen": "studio deen", "Pierrot": "pierrot"
+    };
+
+    let fetchedAnimeList = [];
+    let displayedAnimeIds = new Set();
+    const resultsDiv = document.getElementById('results');
+
+    function populateSelects() {
+        const sortedTags = Object.keys(allTagsMap).sort((a, b) => a.localeCompare(b, 'tr'));
+        const sortedStudios = Object.keys(studioMap).sort();
+        
+        document.getElementById('includeTags').innerHTML = sortedTags.map(tr => `<option value="${allTagsMap[tr]}">${tr}</option>`).join('');
+        document.getElementById('excludeTags').innerHTML = sortedTags.map(tr => `<option value="${allTagsMap[tr]}">${tr}</option>`).join('');
+        document.getElementById('studios').innerHTML = sortedStudios.map(name => `<option value="${studioMap[name]}">${name}</option>`).join('');
+        
+        const yearSelect = document.getElementById('startYear');
+        const now = new Date().getFullYear();
+        for (let y = now; y >= 1980; y--) {
+          yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+        }
+    }
+
+    function showInitialMessage() {
+        resultsDiv.innerHTML = `
+          <div class="message-box">
+            <i class="fas fa-filter"></i>
+            <p>Harika bir anime bulmak için yukarıdaki filtreleri kullanın ve "Anime Öner" butonuna basın.</p>
+          </div>`;
+    }
+
+    function resetFilters() {
+        document.getElementById('includeTags').selectedIndex = -1;
+        document.getElementById('excludeTags').selectedIndex = -1;
+        document.getElementById('studios').selectedIndex = -1;
+        document.getElementById('minScore').value = 70;
+        document.getElementById('startYear').value = '';
+        document.getElementById('anotherBtn').style.display = 'none';
+        showInitialMessage();
+    }
+
+    async function getFilteredAnime() {
+        resultsDiv.innerHTML = `<div class="message-box loading"><i class="fas fa-spinner"></i><p>Filtrelere uygun animeler aranıyor...</p></div>`;
+        document.getElementById('anotherBtn').style.display = 'none';
+        fetchedAnimeList = [];
+        displayedAnimeIds.clear();
+
+        const getSelectedValues = (id) => Array.from(document.getElementById(id).selectedOptions).map(o => o.value);
+        
+        const includeValues = getSelectedValues('includeTags');
+        const excludeValues = getSelectedValues('excludeTags');
+        const studios = getSelectedValues('studios');
+        const minScore = parseInt(document.getElementById('minScore').value) || 0;
+        const startYear = document.getElementById('startYear').value ? parseInt(document.getElementById('startYear').value) : null;
+
+        if (includeValues.length === 0) {
+            resultsDiv.innerHTML = `<div class="message-box error"><i class="fas fa-exclamation-circle"></i><p>Lütfen en az bir tema/tür seçin.</p></div>`;
+            return;
+        }
+
+        // Seçilen değerleri tür ve tema olarak ayır
+        const selectedGenres = includeValues.filter(val => genreList.includes(val));
+        const selectedTags = includeValues.filter(val => !genreList.includes(val));
+
+        // Dinamik olarak sorgu ve değişkenleri oluştur
+        let queryFilters = `
+            type: ANIME, 
+            sort: POPULARITY_DESC, 
+            isAdult: false,
+            averageScore_greater: $score
+        `;
+        let queryVariables = `
+            $page: Int, $perPage: Int, $score: Int
+        `;
+        const variables = {
+            page: 1,
+            perPage: 50,
+            score: minScore
+        };
+
+        if (selectedGenres.length > 0) {
+            queryFilters += ', genre_in: $genres';
+            queryVariables += ', $genres: [String]';
+            variables.genres = selectedGenres;
+        }
+        if (selectedTags.length > 0) {
+            queryFilters += ', tag_in: $tags';
+            queryVariables += ', $tags: [String]';
+            variables.tags = selectedTags;
+        }
+        if (excludeValues.length > 0) {
+            queryFilters += ', tag_not_in: $excludeTags';
+            queryVariables += ', $excludeTags: [String]';
+            variables.excludeTags = excludeValues;
+        }
+        if (startYear) {
+            queryFilters += ', seasonYear: $year';
+            queryVariables += ', $year: Int';
+            variables.year = startYear;
+        }
+        
+        const query = `
+        query (${queryVariables}) {
+          Page(page: $page, perPage: $perPage) {
+            media(${queryFilters}) {
+              id
+              title { romaji english native }
+              coverImage { extraLarge }
+              description(asHtml: false)
+              episodes
+              genres
+              averageScore
+              studios(isMain: true) { nodes { name } }
+              trailer { site id }
+              startDate { year }
+              siteUrl
+            }
+          }
+        }`;
+
+        try {
+            const response = await fetch('https://graphql.anilist.co', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ query, variables })
+            });
+            const json = await response.json();
+
+            if (!response.ok || json.errors) {
+                throw new Error(json.errors ? json.errors[0].message : "Network response was not ok.");
+            }
+
+            let mediaList = json.data?.Page?.media || [];
+
+            if (studios.length > 0) {
+                mediaList = mediaList.filter(anime => 
+                    anime.studios.nodes.some(s => studios.includes(s.name.toLowerCase()))
+                );
+            }
+            
+            if (mediaList.length === 0) {
+                resultsDiv.innerHTML = `<div class="message-box error"><i class="fas fa-heart-crack"></i><p>Bu filtrelere uygun anime bulunamadı. Lütfen kriterlerinizi değiştirin.</p></div>`;
+                return;
+            }
+            
+            fetchedAnimeList = mediaList;
+            suggestAnother();
+            document.getElementById('anotherBtn').style.display = 'block';
+
+        } catch (error) {
+            resultsDiv.innerHTML = `<div class="message-box error"><i class="fas fa-server"></i><p>Bir hata oluştu: ${error.message}</p></div>`;
+            console.error("API Error:", error);
+        }
+    }
+
+    function suggestAnother() {
+        const availableAnimes = fetchedAnimeList.filter(anime => !displayedAnimeIds.has(anime.id));
+        if (availableAnimes.length === 0) {
+            document.getElementById('anotherBtn').style.display = 'none';
+            if (!document.querySelector('.no-more-suggestions')) {
+                resultsDiv.innerHTML += `<div class="message-box no-more-suggestions" style="border-left-color: #4caf50;"><i class="fas fa-check-circle"></i><p>Bu filtrelerdeki tüm önerileri gördünüz!</p></div>`;
+            }
+            return;
+        }
+        const anime = availableAnimes[Math.floor(Math.random() * availableAnimes.length)];
+        displayedAnimeIds.add(anime.id);
+        displayAnime(anime);
+    }
+
+    function displayAnime(anime) {
+        const title = anime.title.english || anime.title.romaji || anime.title.native;
+        const trailerLink = anime.trailer ? `https://youtube.com/watch?v=${anime.trailer.id}` : null;
+        const genres = anime.genres.join(', ');
+        const studiosList = anime.studios.nodes.map(s => s.name).join(', ') || 'Bilinmiyor';
+        
+        let description = anime.description ? anime.description.replace(/<[^>]*>/g, '') : 'Açıklama mevcut değil.';
+        if (description.length > 400) {
+            description = description.substring(0, 400).replace(/\s\w+$/, '...');
+        }
+        
+        resultsDiv.innerHTML = `
+          <div class="anime-card">
+            <div class="anime-cover"><img src="${anime.coverImage.extraLarge}" alt="${title}" /></div>
+            <div class="anime-details">
+              <h2>${title}</h2>
+              <div class="detail-item"><strong>Puan:</strong> <span>${anime.averageScore ? anime.averageScore + ' / 100' : 'N/A'}</span></div>
+              <div class="detail-item"><strong>Stüdyo:</strong> <span>${studiosList}</span></div>
+              <div class="detail-item"><strong>Türler:</strong> <span>${genres}</span></div>
+              <div class="detail-item"><strong>Yayın Yılı:</strong> <span>${anime.startDate.year || '?'}</span></div>
+              <div class="detail-item"><strong>Bölüm:</strong> <span>${anime.episodes || '?'}</span></div>
+              <div class="detail-item"><strong>Açıklama:</strong> <p>${description}</p></div>
+              <div class="anime-links">
+                <a href="${anime.siteUrl}" target="_blank"><i class="fas fa-list"></i> AniList Sayfası</a>
+                ${trailerLink ? `<a href="${trailerLink}" target="_blank"><i class="fab fa-youtube"></i> Fragmanı İzle</a>` : ''}
+              </div>
+            </div>
+          </div>`;
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        populateSelects();
+        showInitialMessage();
+    });
+</script>
+
+</body>
+  </html>
